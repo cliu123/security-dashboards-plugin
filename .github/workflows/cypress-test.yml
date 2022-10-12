@@ -9,11 +9,11 @@ env:
   FTR_PATH: 'ftr'
   START_CMD: 'node ../scripts/opensearch_dashboards --dev --no-base-path --no-watch --opensearch_security.multitenancy.enable_aggregation_view=true'
   OPENSEARCH_SNAPSHOT_CMD: 'node ../scripts/opensearch snapshot'
-  SPEC: 'cypress/integration/plugins/security-dashboard-plugin/saved_objects.js,'
+  SPEC: 'cypress/integration/plugins/security-dashboard-plugin/aggregation_view.js,'
 
 jobs:
   tests:
-    name: Run cypress tests
+    name: Run aggregation view cypress test
     runs-on: ubuntu-latest
     steps:
       - name: Download OpenSearch Core
@@ -148,4 +148,4 @@ jobs:
         uses: cypress-io/github-action@v2
         with:
           working-directory: ${{ env.FTR_PATH }}
-          command: yarn cypress:run-with-security --browser chromium --spec ${{ env.SPEC }}
+          command: yarn cypress:run-with-security-and-aggregation-view --browser chromium --spec ${{ env.SPEC }}
