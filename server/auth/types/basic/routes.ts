@@ -102,7 +102,7 @@ export class BasicAuthRoutes {
             },
           });
         }
-
+        
         this.sessionStorageFactory.asScoped(request).clear();
         const encodedCredentials = Buffer.from(
           `${request.body.username}:${request.body.password}`
