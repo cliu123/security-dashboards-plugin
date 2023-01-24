@@ -146,10 +146,17 @@ export class SecurityClient {
   }
 
   public async getSamlHeader(request: OpenSearchDashboardsRequest) {
+    return {
+      location: 'https://cgliu.onelogin.com/trust/saml2/http-redirect/sso/62513ad7-0fb6-4ef7-8065-c7d48f5ba802?SAMLRequest=fVLLjhoxEPyVke%2FGnjexAIkseSARQAvJIRfk8fSAJY9N3J4k%2B%2FdrhqyyOWQvltWuKleVeoayN1exHMLFPsKPATAkv3tjUYwPczJ4K5xEjcLKHlAEJQ7LLxuRTbi4eheccoa8orzNkIjgg3aWJOvVnOy2Hza7T%2BvtSWacV03bUVmUihZZw2lT5%2BORyrTKedEpknwDj5E7J1EqCiAOsLYYpA1xxLOc8pRm%2BTHLBa9FXn8nySrm0VaGkXUJ4YqCMXU2epg4C8adtZ0o17PgBwzs5j9jNxj10GoPKs7QsSor01y2NeVdU9ECuppOeVVSVbfFtCsbOeUZSfZ%2F2nivbavt%2Be0imjsIxefjcU%2F3u8ORJMuXch6cxaEHfwD%2FUyv4%2Bri5m4%2FejVPSXBwGUVY8ZSd3hSiEwTt2QlCD1%2BFpzMGkQrKY3a5ibMovXvL%2F1XgXa5%2Bx15jZfR%2B20fB6tXdGq6fko%2FO9DP%2FPk07ScaJb2o1QMVi8gtKdhjbGMsb9evAgA8xJLBpIwhb3X%2F9dvMUz',
+      requestId: 'ONELOGIN_a2006bdf-a45c-42b0-b730-b731a16304fc'
+    }
+    
     try {
       // response is expected to be an error
       await this.esClient.asScoped(request).callAsCurrentUser('opensearch_security.authinfo');
     } catch (error: any) {
+      console.log("!!!!!!error");
+      console.log(error);
       // the error looks like
       // wwwAuthenticateDirective:
       //   '
@@ -169,6 +176,11 @@ export class SecurityClient {
         const locationExecArray = locationRegExp.exec(error.wwwAuthenticateDirective);
         const requestExecArray = requestIdRegExp.exec(error.wwwAuthenticateDirective);
         if (locationExecArray && requestExecArray) {
+          console.log("22222222 output")
+          console.log({
+            location: locationExecArray[1],
+            requestId: requestExecArray[1],
+          });
           return {
             location: locationExecArray[1],
             requestId: requestExecArray[1],

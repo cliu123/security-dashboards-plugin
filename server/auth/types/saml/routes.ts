@@ -25,6 +25,7 @@ import { SecurityClient } from '../../../backend/opensearch_security_client';
 import { CoreSetup } from '../../../../../../src/core/server';
 import { validateNextUrl } from '../../../utils/next_url';
 import { AuthType, SAML_AUTH_LOGIN, SAML_AUTH_LOGOUT } from '../../../../common';
+import { SessionRepo } from './session_repo';
 
 export class SamlAuthRoutes {
   constructor(
@@ -97,6 +98,8 @@ export class SamlAuthRoutes {
         },
       },
       async (context, request, response) => {
+        console.log("###### request");
+        console.log(request);
         let requestId: string = '';
         let nextUrl: string = '/';
         let redirectHash: boolean = false;
@@ -120,31 +123,37 @@ export class SamlAuthRoutes {
         }
 
         try {
-          const credentials = await this.securityClient.authToken(
-            requestId,
-            request.body.SAMLResponse,
-            undefined
-          );
-          const user = await this.securityClient.authenticateWithHeader(
-            request,
-            'authorization',
-            credentials.authorization
-          );
+          SessionRepo.createSession(request.body, request.id)
+  
+          console.log("%%%%%%%%session_repository");
+          console.log(SessionRepo.repo);
+          // const credentials = await this.securityClient.authToken(
+          //   requestId,
+          //   request.body.SAMLResponse,
+          //   undefined
+          // );
+          // console.log("^^^^^^^credentials");
+          // console.log(credentials);
+          // const user = await this.securityClient.authenticateWithHeader(
+          //   request,
+          //   'authorization',
+          //   credentials.authorization
+          // );
 
-          let expiryTime = Date.now() + this.config.session.ttl;
-          const [headerEncoded, payloadEncoded, signature] = credentials.authorization.split('.');
-          if (!payloadEncoded) {
-            context.security_plugin.logger.error('JWT token payload not found');
-          }
-          const tokenPayload = JSON.parse(Buffer.from(payloadEncoded, 'base64').toString());
+          let expiryTime = Date.now() + 1000;
+          // const [headerEncoded, payloadEncoded, signature] = credentials.authorization.split('.');
+          // if (!payloadEncoded) {
+          //   context.security_plugin.logger.error('JWT token payload not found');
+          // }
+          // const tokenPayload = JSON.parse(Buffer.from(payloadEncoded, 'base64').toString());
 
-          if (tokenPayload.exp) {
-            expiryTime = parseInt(tokenPayload.exp, 10) * 1000;
-          }
+          // if (tokenPayload.exp) {
+          //   expiryTime = parseInt(tokenPayload.exp, 10) * 1000;
+          // }
           const cookie: SecuritySessionCookie = {
-            username: user.username,
+            username: "",
             credentials: {
-              authHeaderValue: credentials.authorization,
+              authHeaderValue: request.body.id,
             },
             authType: AuthType.SAML, // TODO: create constant
             expiryTime,
