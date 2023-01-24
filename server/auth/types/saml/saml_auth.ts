@@ -33,7 +33,7 @@ import {
 } from '../../../session/security_cookie';
 import { SamlAuthRoutes } from './routes';
 import { AuthenticationType } from '../authentication_type';
-import { AuthType } from '../../../../common';
+import { AuthType, jwtKey } from '../../../../common';
 
 export class SamlAuthentication extends AuthenticationType {
   public static readonly AUTH_HEADER_NAME = 'authorization';
@@ -54,19 +54,18 @@ export class SamlAuthentication extends AuthenticationType {
   private generateNextUrl(request: OpenSearchDashboardsRequest): string {
     const path =
       this.coreSetup.http.basePath.serverBasePath +
-      (request.url.pathname || '/app/opensearch-dashboards');
+      (request.url.path || '/app/opensearch-dashboards');
     return escape(path);
   }
 
-  // Check if we can get the previous tenant information from the expired cookie.
-  private redirectSAMlCapture = (request: OpenSearchDashboardsRequest, toolkit: AuthToolkit) => {
+  private redirectToLoginUri(request: OpenSearchDashboardsRequest, toolkit: AuthToolkit) {
     const nextUrl = this.generateNextUrl(request);
     const clearOldVersionCookie = clearOldVersionCookieValue(this.config);
     return toolkit.redirected({
-      location: `${this.coreSetup.http.basePath.serverBasePath}/auth/saml/captureUrlFragment?nextUrl=${nextUrl}`,
+      location: `${this.coreSetup.http.basePath.serverBasePath}/auth/saml/login?nextUrl=${nextUrl}`,
       'set-cookie': clearOldVersionCookie,
     });
-  };
+  }
 
   public async init() {
     const samlAuthRoutes = new SamlAuthRoutes(
@@ -100,6 +99,18 @@ export class SamlAuthentication extends AuthenticationType {
 
   // Can be improved to check if the token is expiring.
   async isValidCookie(cookie: SecuritySessionCookie): Promise<boolean> {
+    // Validate JWT token in cookie
+    var jwt = require('jsonwebtoken');
+    try {
+      const token = cookie.credentials.authHeaderValue;
+      const decodedToken = jwt.verify(token, jwtKey);
+      console.log("decodedToken");
+      console.log(decodedToken);
+    } catch (error: any) {
+      this.logger.error(`Failed to validate token: ${error}`);
+    //   return false;
+    }
+
     return (
       cookie.authType === AuthType.SAML &&
       cookie.username &&
@@ -114,7 +125,7 @@ export class SamlAuthentication extends AuthenticationType {
     toolkit: AuthToolkit
   ): IOpenSearchDashboardsResponse | AuthResult {
     if (this.isPageRequest(request)) {
-      return this.redirectSAMlCapture(request, toolkit);
+      return this.redirectToLoginUri(request, toolkit);
     } else {
       return response.unauthorized();
     }

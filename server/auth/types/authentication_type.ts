@@ -119,9 +119,9 @@ export abstract class AuthenticationType implements IAuthenticationType {
 
         // set tenant from cookie if exist
         const browserCookie = await this.sessionStorageFactory.asScoped(request).get();
-        if (browserCookie && isValidTenant(browserCookie.tenant)) {
-          cookie.tenant = browserCookie.tenant;
-        }
+        // if (browserCookie && isValidTenant(browserCookie.tenant)) {
+        //   cookie.tenant = browserCookie.tenant;
+        // }
 
         this.sessionStorageFactory.asScoped(request).set(cookie);
       } catch (error: any) {
@@ -137,6 +137,9 @@ export abstract class AuthenticationType implements IAuthenticationType {
         this.logger.error(`Error parsing cookie: ${error.message}`);
         cookie = undefined;
       }
+
+      console.log("######### cookie");
+      console.log(cookie);
 
       if (!cookie || !(await this.isValidCookie(cookie))) {
         // clear cookie
@@ -167,43 +170,44 @@ export abstract class AuthenticationType implements IAuthenticationType {
     }
 
     // resolve tenant if necessary
-    if (this.config.multitenancy?.enabled) {
-      try {
-        const tenant = await this.resolveTenant(request, cookie!, authHeaders, authInfo);
-        // return 401 if no tenant available
-        if (!isValidTenant(tenant)) {
-          return response.badRequest({
-            body:
-              'No available tenant for current user, please reach out to your system administrator',
-          });
-        }
-        authState.selectedTenant = tenant;
+    // if (this.config.multitenancy?.enabled) {
+    //   try {
+    //     const tenant = await this.resolveTenant(request, cookie!, authHeaders, authInfo);
+    //     // return 401 if no tenant available
+    //     if (!isValidTenant(tenant)) {
+    //       return response.badRequest({
+    //         body:
+    //           'No available tenant for current user, please reach out to your system administrator',
+    //       });
+    //     }
+    //     authState.selectedTenant = tenant;
 
-        // set tenant in header
-        if (this.config.multitenancy.enabled && this.config.multitenancy.enable_aggregation_view) {
-          // Store all saved objects in a single kibana index.
-          Object.assign(authHeaders, { securitytenant: GLOBAL_TENANT_SYMBOL });
-        } else {
-          Object.assign(authHeaders, { securitytenant: tenant });
-        }
+    //     // set tenant in header
+    //     if (this.config.multitenancy.enabled && this.config.multitenancy.enable_aggregation_view) {
+    //       // Store all saved objects in a single kibana index.
+    //       Object.assign(authHeaders, { securitytenant: GLOBAL_TENANT_SYMBOL });
+    //     } else {
+    //       Object.assign(authHeaders, { securitytenant: tenant });
+    //     }
 
-        // set tenant to cookie
-        if (tenant !== cookie!.tenant) {
-          cookie!.tenant = tenant;
-          this.sessionStorageFactory.asScoped(request).set(cookie!);
-        }
-      } catch (error) {
-        this.logger.error(`Failed to resolve user tenant: ${error}`);
-        if (error instanceof UnauthenticatedError) {
-          if (request.url.pathname && request.url.pathname.startsWith('/bundles/')) {
-            return toolkit.notHandled();
-          }
-          this.sessionStorageFactory.asScoped(request).clear();
-          return this.handleUnauthedRequest(request, response, toolkit);
-        }
-        throw error;
-      }
-    }
+    //     // set tenant to cookie
+    //     if (tenant !== cookie!.tenant) {
+    //       cookie!.tenant = tenant;
+    //       this.sessionStorageFactory.asScoped(request).set(cookie!);
+    //     }
+    //   } catch (error) {
+    //     this.logger.error(`Failed to resolve user tenant: ${error}`);
+    //     if (error instanceof UnauthenticatedError) {
+    //       if (request.url.pathname && request.url.pathname.startsWith('/bundles/')) {
+    //         return toolkit.notHandled();
+    //       }
+    //       this.sessionStorageFactory.asScoped(request).clear();
+    //       return this.handleUnauthedRequest(request, response, toolkit);
+    //     }
+    //     throw error;
+    //   }
+    // }
+
     if (!authInfo) {
       authInfo = await this.securityClient.authinfo(request, authHeaders);
     }
