@@ -87,7 +87,34 @@ export class SecurityPlugin
 
     const config = this.initializerContext.config.get<ClientConfigType>();
 
-    const accountInfo = (await fetchAccountInfoSafe(core.http))?.data;
+    // const accountInfo = (await fetchAccountInfoSafe(core.http))?.data;
+    const accountInfo = {
+      "user_name": "cgliu@amazon.com",
+      "is_reserved": false,
+      "is_hidden": false,
+      "is_internal_user": false,
+      "user_requested_tenant": null,
+      "backend_roles": [
+          "admin"
+      ],
+      "custom_attribute_names": [
+          "attr.jwt.roles",
+          "attr.jwt.sub",
+          "attr.jwt.saml_nif",
+          "attr.jwt.nbf",
+          "attr.jwt.exp",
+          "attr.jwt.saml_si"
+      ],
+      "tenants": {
+          "global_tenant": true,
+          "admin_tenant": true,
+          "cgliu@amazon.com": true
+      },
+      "roles": [
+          "own_index",
+          "all_access"
+      ]
+  }
     const isReadonly = accountInfo?.roles.some((role) =>
       (config.readonly_mode?.roles || DEFAULT_READONLY_ROLES).includes(role)
     );

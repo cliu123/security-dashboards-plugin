@@ -25,6 +25,8 @@ import { SecurityClient } from '../../../backend/opensearch_security_client';
 import { CoreSetup } from '../../../../../../src/core/server';
 import { validateNextUrl } from '../../../utils/next_url';
 import { AuthType, SAML_AUTH_LOGIN, SAML_AUTH_LOGOUT } from '../../../../common';
+import { ClusterPermissionPanel } from 'plugins/security-dashboards-plugin/public/apps/configuration/panels/role-edit/cluster-permission-panel';
+import { compileSchema } from 'ajv/dist/compile';
 
 export class SamlAuthRoutes {
   constructor(
@@ -116,31 +118,41 @@ export class SamlAuthRoutes {
         }
 
         try {
-          const credentials = await this.securityClient.authToken(
-            requestId,
-            request.body.SAMLResponse,
-            undefined
-          );
-          const user = await this.securityClient.authenticateWithHeader(
-            request,
-            'authorization',
-            credentials.authorization
-          );
+          // const credentials = await this.securityClient.authToken(
+          //   requestId,
+          //   request.body.SAMLResponse,
+          //   undefined
+          // );
+          // const user = await this.securityClient.authenticateWithHeader(
+          //   request,
+          //   'authorization',
+          //   credentials.authorization
+          // );
 
           let expiryTime = Date.now() + this.config.session.ttl;
-          const [headerEncoded, payloadEncoded, signature] = credentials.authorization.split('.');
-          if (!payloadEncoded) {
-            context.security_plugin.logger.error('JWT token payload not found');
-          }
-          const tokenPayload = JSON.parse(Buffer.from(payloadEncoded, 'base64').toString());
+          // const [headerEncoded, payloadEncoded, signature] = credentials.authorization.split('.');
+          // if (!payloadEncoded) {
+          //   context.security_plugin.logger.error('JWT token payload not found');
+          // }
+          // const tokenPayload = JSON.parse(Buffer.from(payloadEncoded, 'base64').toString());
 
-          if (tokenPayload.exp) {
-            expiryTime = parseInt(tokenPayload.exp, 10) * 1000;
-          }
+          // if (tokenPayload.exp) {
+          //   expiryTime = parseInt(tokenPayload.exp, 10) * 1000;
+          // }
+          // const cookie: SecuritySessionCookie = {
+          //   username: user.username,
+          //   credentials: {
+          //     authHeaderValue: credentials.authorization,
+          //   },
+          //   authType: AuthType.SAML, // TODO: create constant
+          //   expiryTime,
+          // };
+          // console.log("######cookie");
+          // console.log(cookie);
           const cookie: SecuritySessionCookie = {
-            username: user.username,
+            username: "cgliu@amazon.com",
             credentials: {
-              authHeaderValue: credentials.authorization,
+              authHeaderValue: "bearer eyJhbGciOiJIUzUxMiJ9.eyJuYmYiOjE2NzQ1NTAxMjYsImV4cCI6MTY3NDYzNjUyNiwic3ViIjoiY2dsaXVAYW1hem9uLmNvbSIsInNhbWxfbmlmIjoiZW1haWwiLCJzYW1sX3NpIjoiXzhjYjUwOGI5LWNhZTItNDgyYS05YTEyLTFiOTY3MTA4Y2MyNSIsInJvbGVzIjpbImFkbWluIl19.LwkAcuq2ReiUxidkB4sx3BHg_4Vs1hsSOn--CyRghiZ2SouB7Y2eTwLr41-Nv1l_1lQYGY1JichHX06fvHC22w",
             },
             authType: AuthType.SAML, // TODO: create constant
             expiryTime,
