@@ -54,19 +54,18 @@ export class SamlAuthentication extends AuthenticationType {
   private generateNextUrl(request: OpenSearchDashboardsRequest): string {
     const path =
       this.coreSetup.http.basePath.serverBasePath +
-      (request.url.pathname || '/app/opensearch-dashboards');
+      (request.url.path || '/app/opensearch-dashboards');
     return escape(path);
   }
 
-  // Check if we can get the previous tenant information from the expired cookie.
-  private redirectSAMlCapture = (request: OpenSearchDashboardsRequest, toolkit: AuthToolkit) => {
+  private redirectToLoginUri(request: OpenSearchDashboardsRequest, toolkit: AuthToolkit) {
     const nextUrl = this.generateNextUrl(request);
     const clearOldVersionCookie = clearOldVersionCookieValue(this.config);
     return toolkit.redirected({
-      location: `${this.coreSetup.http.basePath.serverBasePath}/auth/saml/captureUrlFragment?nextUrl=${nextUrl}`,
+      location: `${this.coreSetup.http.basePath.serverBasePath}/auth/saml/login?nextUrl=${nextUrl}`,
       'set-cookie': clearOldVersionCookie,
     });
-  };
+  }
 
   public async init() {
     const samlAuthRoutes = new SamlAuthRoutes(
@@ -114,7 +113,7 @@ export class SamlAuthentication extends AuthenticationType {
     toolkit: AuthToolkit
   ): IOpenSearchDashboardsResponse | AuthResult {
     if (this.isPageRequest(request)) {
-      return this.redirectSAMlCapture(request, toolkit);
+      return this.redirectToLoginUri(request, toolkit);
     } else {
       return response.unauthorized();
     }
