@@ -25,8 +25,8 @@ import { SecurityClient } from '../../../backend/opensearch_security_client';
 import { CoreSetup } from '../../../../../../src/core/server';
 import { validateNextUrl } from '../../../utils/next_url';
 import { AuthType, SAML_AUTH_LOGIN, SAML_AUTH_LOGOUT } from '../../../../common';
-import { ClusterPermissionPanel } from 'plugins/security-dashboards-plugin/public/apps/configuration/panels/role-edit/cluster-permission-panel';
 import { compileSchema } from 'ajv/dist/compile';
+import { XMLParser } from "fast-xml-parser";
 
 export class SamlAuthRoutes {
   constructor(
@@ -118,6 +118,22 @@ export class SamlAuthRoutes {
         }
 
         try {
+          const SAML = require("saml-encoder-decoder-js");
+          const xmlParser = new XMLParser();
+          const token = request.body.SAMLResponse;
+          // TODO: 
+          // - Validate SAML Response 
+          // - Set the SAML Response expiry in cookie
+          // - Consider how identiy info updates in IDP are synced with SP(Just in time/Real Time updates)
+          SAML.decodeSamlPost(token, function(err: string | undefined, xml: any) {
+              if (err) {
+                  throw new Error(err);
+              }
+              const jsonObj = xmlParser.parse(xml);
+              const username = jsonObj["samlp:Response"]["saml:Assertion"]["saml:Subject"]["saml:NameID"];
+          });
+          
+
           // const credentials = await this.securityClient.authToken(
           //   requestId,
           //   request.body.SAMLResponse,
