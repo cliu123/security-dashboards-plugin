@@ -64,16 +64,29 @@ export class SecurityClient {
 
       // cannot get config elasticsearch.requestHeadersWhitelist from kibana.yml file in new platfrom
       // meanwhile, do we really need to save all headers in cookie?
-      const esResponse = await this.esClient
-        .asScoped(request)
-        .callAsCurrentUser('opensearch_security.authinfo', {
-          headers,
-        });
+      const esResponse = {
+        user: 'User [name=admin, backend_roles=[admin], requestedTenant=null]',
+        user_name: 'cgliu@amazon.com',
+        user_requested_tenant: null,
+        remote_address: '127.0.0.1:61197',
+        backend_roles: [ 'admin' ],
+        custom_attribute_names: [],
+        roles: [ 'own_index', 'all_access' ],
+        tenants: { global_tenant: true, admin_tenant: true, admin: true },
+        principal: null,
+        peer_certificates: '0',
+        sso_logout_url: 'https://cgliu.onelogin.com/trust/saml2/http-redirect/slo/1970238?SAMLRequest=fVJda8IwFP0rJe%2BxTbt%2BGLRMcBsFpzDHHvYit02qhTRxuSnIfv1ineAGG%2BTp5Jxzzz3JDKFXR74yezO4F%2FkxSHTBqVca%2BXgzJ4PV3AB2yDX0Erlr%2BHbxvOLxJOJHa5xpjCI3kv8VgCit64wmQbWck836YbV5qtY7EFmeQ5TQRBaM3uWipRAXMRV1Clk9bfxJSPAmLXrtnHgrb4A4yEqjA%2B08FMUJjRiN2WuU87TgLHsnwdLv02lwo%2Brg3BF5GDZ71Q0To6Uy%2B05PGtOHzg7ownP%2BODzTqJWis7LxmDIhm%2BbevSBBOTtT%2BDjZllc%2FZRpQB4OOT%2BMomoW3nItg7YuolsGjsT24vxtiEzYinaDtSOWyh04thLASkZRj8Hvo4dOMsb9HXdzLYHZ5zK3n%2Bn0rLeSp3KVtFrO8TWgt68g3mwKdZg2jbZYWeV0ULYj04vNLeQV%2F%2FI3yCw%3D%3D'
+      }
+      // const esResponse = await this.esClient
+      //   .asScoped(request)
+      //   .callAsCurrentUser('opensearch_security.authinfo', {
+      //     headers,
+      //   });
       return {
         username: esResponse.user_name,
         roles: esResponse.roles,
         backendRoles: esResponse.backend_roles,
-        tenants: esResponse.teanats,
+        tenants: esResponse.tenants,
         selectedTenant: esResponse.user_requested_tenant,
         credentials,
       };

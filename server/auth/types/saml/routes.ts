@@ -27,6 +27,7 @@ import { validateNextUrl } from '../../../utils/next_url';
 import { AuthType, SAML_AUTH_LOGIN, SAML_AUTH_LOGOUT } from '../../../../common';
 import { compileSchema } from 'ajv/dist/compile';
 import { XMLParser } from "fast-xml-parser";
+import { AuthToken } from './utils/AuthToken';
 
 export class SamlAuthRoutes {
   constructor(
@@ -120,12 +121,12 @@ export class SamlAuthRoutes {
         try {
           const SAML = require("saml-encoder-decoder-js");
           const xmlParser = new XMLParser();
-          const token = request.body.SAMLResponse;
+          const samlResponse = request.body.SAMLResponse;
           // TODO: 
           // - Validate SAML Response 
           // - Set the SAML Response expiry in cookie
           // - Consider how identiy info updates in IDP are synced with SP(Just in time/Real Time updates)
-          SAML.decodeSamlPost(token, function(err: string | undefined, xml: any) {
+          SAML.decodeSamlPost(samlResponse, function(err: string | undefined, xml: any) {
               if (err) {
                   throw new Error(err);
               }
@@ -165,14 +166,30 @@ export class SamlAuthRoutes {
           // };
           // console.log("######cookie");
           // console.log(cookie);
+
+          const authToken = new AuthToken(samlResponse);
+          const credentials = authToken.token;
+          console.log("######### credentials");
+          console.log(credentials);
+
+          // const cookie: SecuritySessionCookie = {
+          //   username: "cgliu@amazon.com",
+          //   credentials: {
+          //     authHeaderValue: "bearer eyJhbGciOiJIUzUxMiJ9.eyJuYmYiOjE2NzUyMTM3NzksImV4cCI6MTY3NTMwMDE3OSwic3ViIjoiY2dsaXVAYW1hem9uLmNvbSIsInNhbWxfbmlmIjoiZW1haWwiLCJzYW1sX3NpIjoiXzE5N2U0M2MxLTczNjMtNGQxMi05MGEzLTYyMTNjZDdkZmMzYSJ9.M-msJk-lZnzwl9jn0RUaVauB1uLFIGe9ePG_WCCMyLHFCR0YPYhdqyyCE8OHqbB5xa4GN92sMCRkSTIsJ07j7A",
+          //   },
+          //   authType: AuthType.SAML, // TODO: create constant
+          //   expiryTime,
+          // };
+
           const cookie: SecuritySessionCookie = {
             username: "cgliu@amazon.com",
             credentials: {
-              authHeaderValue: "bearer eyJhbGciOiJIUzUxMiJ9.eyJuYmYiOjE2NzQ1NTAxMjYsImV4cCI6MTY3NDYzNjUyNiwic3ViIjoiY2dsaXVAYW1hem9uLmNvbSIsInNhbWxfbmlmIjoiZW1haWwiLCJzYW1sX3NpIjoiXzhjYjUwOGI5LWNhZTItNDgyYS05YTEyLTFiOTY3MTA4Y2MyNSIsInJvbGVzIjpbImFkbWluIl19.LwkAcuq2ReiUxidkB4sx3BHg_4Vs1hsSOn--CyRghiZ2SouB7Y2eTwLr41-Nv1l_1lQYGY1JichHX06fvHC22w",
+              authHeaderValue: authToken.token,
             },
             authType: AuthType.SAML, // TODO: create constant
             expiryTime,
           };
+
           this.sessionStorageFactory.asScoped(request).set(cookie);
           return response.redirected({
             headers: {

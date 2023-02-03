@@ -93,6 +93,8 @@ export class BasicAuthentication extends AuthenticationType {
   }
 
   async isValidCookie(cookie: SecuritySessionCookie): Promise<boolean> {
+    
+
     return (
       cookie.authType === this.type &&
       cookie.expiryTime &&

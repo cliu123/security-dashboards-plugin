@@ -49,6 +49,8 @@ export const GLOBAL_TENANT_RENDERING_TEXT = 'Global';
 export const PRIVATE_TENANT_RENDERING_TEXT = 'Private';
 export const globalTenantName = 'global_tenant';
 
+export const jwtKey = "6aff3042-1327-4f3d-82f0-40a157ac4464"
+
 export enum AuthType {
   BASIC = 'basicauth',
   OPEN_ID = 'openid',

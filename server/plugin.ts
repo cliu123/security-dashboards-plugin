@@ -77,11 +77,11 @@ export class SecurityPlugin implements Plugin<SecurityPluginSetup, SecurityPlugi
   // @ts-ignore: property not initialzied in constructor
   private securityClient: SecurityClient;
 
-  private savedObjectClientWrapper: SecuritySavedObjectsClientWrapper;
+  // private savedObjectClientWrapper: SecuritySavedObjectsClientWrapper;
 
   constructor(private readonly initializerContext: PluginInitializerContext) {
     this.logger = initializerContext.logger.get();
-    this.savedObjectClientWrapper = new SecuritySavedObjectsClientWrapper();
+    // this.savedObjectClientWrapper = new SecuritySavedObjectsClientWrapper();
   }
 
   public async setup(core: CoreSetup) {
@@ -133,13 +133,13 @@ export class SecurityPlugin implements Plugin<SecurityPluginSetup, SecurityPlugi
       setupMultitenantRoutes(router, securitySessionStorageFactory, this.securityClient);
     }
 
-    if (config.multitenancy.enabled && config.multitenancy.enable_aggregation_view) {
-      core.savedObjects.addClientWrapper(
-        2,
-        'security-saved-object-client-wrapper',
-        this.savedObjectClientWrapper.wrapperFactory
-      );
-    }
+    // if (config.multitenancy.enabled && config.multitenancy.enable_aggregation_view) {
+    //   core.savedObjects.addClientWrapper(
+    //     2,
+    //     'security-saved-object-client-wrapper',
+    //     this.savedObjectClientWrapper.wrapperFactory
+    //   );
+    // }
 
     return {
       config$,
@@ -154,8 +154,8 @@ export class SecurityPlugin implements Plugin<SecurityPluginSetup, SecurityPlugi
     const config$ = this.initializerContext.config.create<SecurityPluginConfigType>();
     const config = await config$.pipe(first()).toPromise();
 
-    this.savedObjectClientWrapper.httpStart = core.http;
-    this.savedObjectClientWrapper.config = config;
+    // this.savedObjectClientWrapper.httpStart = core.http;
+    // this.savedObjectClientWrapper.config = config;
 
     if (config.multitenancy?.enabled) {
       const globalConfig$: Observable<SharedGlobalConfig> = this.initializerContext.config.legacy

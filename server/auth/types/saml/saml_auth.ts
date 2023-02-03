@@ -33,7 +33,7 @@ import {
 } from '../../../session/security_cookie';
 import { SamlAuthRoutes } from './routes';
 import { AuthenticationType } from '../authentication_type';
-import { AuthType } from '../../../../common';
+import { AuthType, jwtKey } from '../../../../common';
 
 export class SamlAuthentication extends AuthenticationType {
   public static readonly AUTH_HEADER_NAME = 'authorization';
@@ -99,6 +99,16 @@ export class SamlAuthentication extends AuthenticationType {
 
   // Can be improved to check if the token is expiring.
   async isValidCookie(cookie: SecuritySessionCookie): Promise<boolean> {
+    // Validate JWT token in cookie
+    var jwt = require('jsonwebtoken');
+    try {
+      const token = cookie.credentials.authHeaderValue;
+      const decodedToken = jwt.verify(token, jwtKey);
+    } catch (error: any) {
+      this.logger.error(`Failed to validate token: ${error}`);
+    //   return false;
+    }
+
     return (
       cookie.authType === AuthType.SAML &&
       cookie.username &&
