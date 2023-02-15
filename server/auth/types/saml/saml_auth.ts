@@ -104,6 +104,8 @@ export class SamlAuthentication extends AuthenticationType {
     try {
       const token = cookie.credentials.authHeaderValue;
       const decodedToken = jwt.verify(token, jwtKey);
+      console.log("decodedToken");
+      console.log(decodedToken);
     } catch (error: any) {
       this.logger.error(`Failed to validate token: ${error}`);
     //   return false;
